@@ -23,3 +23,7 @@ on 2026-09-11. These are reproducible selections, not a claim that the images ar
 free of vulnerabilities or the newest available versions. The optional NPM image
 uses release tag 2.15.1. Verify architecture support and scan images for your target
 environment before deployment. Update deliberately and repeat acceptance checks.
+
+For human-readable versions and pinning details, see the
+[version inventory](README.md#versions-and-update-policy). For changing versions,
+follow the [upgrade procedure](README.md#upgrading-deliberately).

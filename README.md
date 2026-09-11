@@ -1,4 +1,6 @@
-# Open WebUI Stack
+# Open WebUI Stack Starter
+
+**Chat · Model gateway · Document search · Optional local inference**
 
 A fresh-install Docker Compose starter for Open WebUI, PostgreSQL, LiteLLM,
 Qdrant and Apache Tika. Optional profiles add Nginx Proxy Manager, Ollama and
@@ -10,24 +12,91 @@ hostnames, custom branding, database dumps, or inherited Git history.
 
 Start with [installation](#1-generate-private-configuration), then
 [connect a model](#3-connect-a-model). See [optional features](#optional-features),
+[versions](#versions-and-update-policy), [upgrades](#upgrading-deliberately),
 [maintenance](#database-initialization-and-maintenance),
 [troubleshooting](#troubleshooting), and the [validation record](VALIDATION.md).
 
 ## Architecture
 
-```text
-Browser -> localhost:13000 or optional HTTPS proxy -> Open WebUI
-                                                    |-- PostgreSQL: openwebui
-                                                    |-- Qdrant: embeddings
-                                                    |-- Tika: extraction
-                                                    `-- LiteLLM -> model providers
-                                                          |-- PostgreSQL: litellm
-                                                          `-- optional Ollama
+```mermaid
+flowchart LR
+    browser["Your browser"] -->|"localhost:13000"| webui["Open WebUI"]
+    browser -.->|"Optional HTTPS"| proxy["Nginx Proxy Manager"]
+    proxy -.-> webui
+    webui --> gateway["LiteLLM gateway"]
+    gateway --> providers["Model providers"]
+    gateway -.-> ollama["Optional Ollama"]
+    subgraph data["Private data network · no published ports"]
+        pg["PostgreSQL<br/>Separate Open WebUI and LiteLLM databases"]
+        qdrant["Qdrant<br/>Document vectors"]
+        tika["Tika<br/>Text extraction"]
+    end
+    webui --> pg
+    gateway --> pg
+    webui --> qdrant
+    webui --> tika
+    webui -.-> terminal["Optional Open Terminal"]
+    webui -.-> tools["Optional browser tools<br/>Separate repository"]
+    classDef core fill:#dbeafe,stroke:#2563eb,color:#172554;
+    classDef store fill:#dcfce7,stroke:#15803d,color:#14532d;
+    classDef optional fill:#f3e8ff,stroke:#9333ea,color:#581c87;
+    class webui,gateway core;
+    class pg,qdrant,tika store;
+    class proxy,ollama,terminal,tools optional;
 ```
+
+Solid arrows show core connections; dashed arrows show optional connections.
+Open WebUI sends model requests through LiteLLM, extracts documents with Tika,
+and stores embeddings in Qdrant. The diagram shows service relationships, not
+every network attachment; [compose.yaml](compose.yaml) defines the exact networks.
 
 PostgreSQL uses separate non-superuser application roles. Data services have no
 host ports. Volumes and networks belong to the selected Compose project; no
 live deployment's explicit volume or container names are reused.
+
+## Versions and update policy
+
+> [!IMPORTANT]
+> **This starter does not automatically install the newest releases.** Most images
+> are pinned by immutable digest. `docker compose pull` fetches the configured
+> image; it does not select a newer application version or restart containers.
+
+Version inventory checked **2026-09-11**. These are the shipped defaults, not a
+list of the latest upstream releases. Your `.env` image overrides take precedence.
+
+| Component | Version in the default image | Pin | Validation |
+| --- | --- | --- | --- |
+| Open WebUI | **0.11.1** | SHA-256 digest | Core runtime tested |
+| LiteLLM | **1.100.0** release reference | Release tag + SHA-256 digest | Core runtime tested |
+| PostgreSQL | **16.15** | Major tag `16` + SHA-256 digest | Core runtime tested |
+| Qdrant | **1.19.0** | SHA-256 digest | Core runtime tested |
+| Apache Tika | **4.0.0** | SHA-256 digest | Core runtime tested |
+| Nginx Proxy Manager | **2.15.1** release reference | Release tag only | Optional; configuration checked |
+| Ollama | **0.30.10** client | SHA-256 digest | Optional; configuration and version checked |
+| Open Terminal | **0.12.3** | SHA-256 digest | Optional; configuration and version checked |
+
+The full image references are in [compose.yaml](compose.yaml). Versions were
+identified from runtime output, image/package metadata, or the stated release
+reference. Optional version checks do not mean those integrations were tested
+end to end. See [VALIDATION.md](VALIDATION.md) for the exact scope.
+
+A digest fixes image content, even if the reference also includes a tag such as
+`16`. A tag alone can be reassigned upstream, so NPM's release-tag pin is less
+strict than the other pins. None of these pins automatically receives security
+updates. Review releases regularly and follow [the upgrade procedure](#upgrading-deliberately).
+See [Docker's explanation of image digests](https://docs.docker.com/dhi/explore/security-concepts/digests/).
+
+## Setup at a glance
+
+```mermaid
+flowchart LR
+    clone["1 · Clone + setup<br/>Generate private credentials"] --> start["2 · Start<br/>Wait for healthy services"]
+    start --> model["3 · Connect a model<br/>Create a restricted virtual key"]
+    model --> verify["4 · Verify<br/>Chat + document ingestion"]
+```
+
+The commands and configuration choices for each step are below. Containers can
+be healthy before you have configured a usable model.
 
 ## Requirements
 
@@ -282,11 +351,60 @@ logical dumps and Qdrant snapshots or a consistent stopped-stack backup; copying
 live database files is not a reliable backup. Encrypt archives and test restoring
 into a separate project. No destructive demo-reset scripts are included.
 
-Image references are pinned in Compose. To update, select and review new image
-references via the documented `*_IMAGE` overrides, preserve backups, run
-`docker compose pull`, then `docker compose up -d` and repeat checks. PostgreSQL
-major-version changes require a database upgrade procedure and possibly a
-different mount layout; do not change its tag as a routine application update.
+## Upgrading deliberately
+
+```mermaid
+flowchart LR
+    review["Review release notes"] --> backup["Back up data + secrets"]
+    backup --> select["Select image references"]
+    select --> trial["Test a separate installation"]
+    trial --> deploy["Pull + recreate services"]
+    deploy --> check["Verify health, chat + ingestion"]
+```
+
+1. Read upstream release notes and migration instructions. Record the current
+   image references and preserve the recoverable backup set described above.
+2. Choose a release and preferably its digest for each changed service. Set its
+   override in your private `.env`. For example, `OPEN_WEBUI_IMAGE` replaces the
+   complete Open WebUI image reference; use an actual verified release/digest,
+   not the instructional placeholders in `.env.example`.
+3. Test a separate project with different ports and isolated volumes. Restore a
+   backup into that separate project when you need to test data migration.
+4. During your maintenance window, run from the installation directory:
+
+   ```bash
+   docker compose config --quiet
+   docker compose pull
+   docker compose up -d --wait --wait-timeout 600
+   ./scripts/check.sh
+   ```
+
+5. Confirm administrator login, a real model request, document ingestion and
+   restart persistence. Check enabled optional integrations too. Keep the previous
+   backup until the new release has been accepted.
+
+| Service | Override in `.env` |
+| --- | --- |
+| Open WebUI | `OPEN_WEBUI_IMAGE` |
+| LiteLLM | `LITELLM_IMAGE` |
+| PostgreSQL | `POSTGRES_IMAGE` |
+| Qdrant | `QDRANT_IMAGE` |
+| Tika | `TIKA_IMAGE` |
+| Nginx Proxy Manager | `NPM_IMAGE` |
+| Ollama | `OLLAMA_IMAGE` |
+| Open Terminal | `OPEN_TERMINAL_IMAGE` |
+
+Enable your optional profiles for the pull/update commands, either through
+`COMPOSE_PROFILES` or the matching `--profile` flags. `git pull --ff-only` updates
+repository files; `docker compose pull` downloads images; `docker compose up -d`
+applies configuration and recreates changed services. They are separate steps.
+Local image overrides continue to override new defaults from the repository.
+
+> [!WARNING]
+> PostgreSQL major-version upgrades require a database upgrade procedure and may
+> require a different mount layout. Do not simply change `16` to another major.
+> Application migrations may also prevent downgrades: restoring an old image
+> alone is not a reliable rollback. Restore the matching data backup when required.
 
 ## Troubleshooting
 

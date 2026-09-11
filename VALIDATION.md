@@ -4,6 +4,21 @@ Validated on 2026-09-11 on a Linux x86-64 Docker host. Testing used a separate
 Compose project, new volumes, and dynamically allocated localhost ports.
 The existing deployment was not reconfigured or restarted.
 
+## Coverage at a glance
+
+| Layer | Result | What that means |
+| --- | --- | --- |
+| Setup and configuration | ✅ Passed | Secret generation, source checks, all Compose profiles |
+| Core services | ✅ Passed | Fresh initialization, authentication, database isolation |
+| Document processing | ✅ Passed | Synthetic extraction, embeddings and restart persistence |
+| Provider inference | ⬜ Not tested | Real model calls, chat citations and key budgets remain deployment checks |
+| Optional integrations | ◐ Partial | Configuration checked; no end-to-end proxy, Ollama, terminal or browser test |
+| Upgrade and recovery | ⬜ Not tested | Major upgrades and backup restoration need separate validation |
+
+The [README version table](README.md#versions-and-update-policy) identifies the
+default images. Optional Ollama/Open Terminal version checks used short-lived,
+network-disabled containers without live data mounts; they were not deployments.
+
 ## Passed
 
 - Compose validation for the core stack and all optional profiles.
