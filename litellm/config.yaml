@@ -1,0 +1,7 @@
+# Add providers and models in the authenticated LiteLLM Admin UI.
+# Provider secrets and models are stored in PostgreSQL, not in this tracked file.
+model_list: []
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  store_model_in_db: true
