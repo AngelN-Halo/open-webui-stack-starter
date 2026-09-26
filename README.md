@@ -1,5 +1,7 @@
 # Open WebUI Stack Starter
 
+[**Read the web documentation →**](https://angeln-halo.github.io/open-webui-stack-starter/)
+
 **Chat · Model gateway · Document search · Optional local inference**
 
 A fresh-install Docker Compose starter for Open WebUI, PostgreSQL, LiteLLM,
