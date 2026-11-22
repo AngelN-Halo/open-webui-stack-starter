@@ -19,9 +19,9 @@ and attribution. No custom branding Dockerfile is required. Any later branding
 changes must account for the applicable upstream license.
 
 Core defaults use immutable image digests from images available during preparation
-on 2026-09-11. These are reproducible selections, not a claim that the images are
+on 2026-11-22. These are reproducible selections, not a claim that the images are
 free of vulnerabilities or the newest available versions. The optional NPM image
-uses release tag 2.15.1. Verify architecture support and scan images for your target
+uses release tag 2.17.1 plus an immutable digest. Verify architecture support and scan images for your target
 environment before deployment. Update deliberately and repeat acceptance checks.
 
 For human-readable versions and pinning details, see the

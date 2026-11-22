@@ -63,24 +63,25 @@ live deployment's explicit volume or container names are reused.
 > are pinned by immutable digest. `docker compose pull` fetches the configured
 > image; it does not select a newer application version or restart containers.
 
-Version inventory checked **2026-09-11**. These are the shipped defaults, not a
+Version inventory refreshed **2026-11-22**. These are the shipped defaults, not a
 list of the latest upstream releases. Your `.env` image overrides take precedence.
 
 | Component | Version in the default image | Pin | Validation |
 | --- | --- | --- | --- |
-| Open WebUI | **0.11.1** | SHA-256 digest | Core runtime tested |
-| LiteLLM | **1.100.0** release reference | Release tag + SHA-256 digest | Core runtime tested |
-| PostgreSQL | **16.15** | Major tag `16` + SHA-256 digest | Core runtime tested |
-| Qdrant | **1.19.0** | SHA-256 digest | Core runtime tested |
-| Apache Tika | **4.0.0** | SHA-256 digest | Core runtime tested |
-| Nginx Proxy Manager | **2.15.1** release reference | Release tag only | Optional; configuration checked |
-| Ollama | **0.30.10** client | SHA-256 digest | Optional; configuration and version checked |
-| Open Terminal | **0.12.3** | SHA-256 digest | Optional; configuration and version checked |
+| Open WebUI | **0.13.4** release reference | Release tag + SHA-256 digest | Registry and Compose checked; staging required |
+| LiteLLM | **1.110.2** release reference | Release tag + SHA-256 digest | Registry and Compose checked; staging required |
+| PostgreSQL | **16** (existing major retained) | Major tag `16` + SHA-256 digest | Registry and Compose checked; staging required |
+| Qdrant | Refreshed upstream digest | SHA-256 digest | Registry and Compose checked; staging required |
+| Apache Tika | Refreshed upstream digest | SHA-256 digest | Registry and Compose checked; staging required |
+| Nginx Proxy Manager | **2.17.1** release reference | Release tag + SHA-256 digest | Registry and Compose checked; staging required |
+| Ollama | **0.40.17** release reference | Release tag + SHA-256 digest | Registry and Compose checked; staging required |
+| Open Terminal | Refreshed upstream digest | SHA-256 digest | Registry and Compose checked; staging required |
 
 The full image references are in [compose.yaml](compose.yaml). Versions were
-identified from runtime output, image/package metadata, or the stated release
-reference. Optional version checks do not mean those integrations were tested
-end to end. See [VALIDATION.md](VALIDATION.md) for the exact scope.
+identified from registry metadata or the stated release reference. The refreshed
+images have not been tested against an existing installation. Back up all data
+and repeat staging acceptance checks before deployment; earlier runtime results
+in [VALIDATION.md](VALIDATION.md) apply to the earlier pinned images only.
 
 A digest fixes image content, even if the reference also includes a tag such as
 `16`. A tag alone can be reassigned upstream, so NPM's release-tag pin is less

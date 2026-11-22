@@ -2,7 +2,7 @@ name: ${COMPOSE_PROJECT_NAME:-open-webui-stack}
 
 services:
   postgres:
-    image: ${POSTGRES_IMAGE:-postgres:16@sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94}
+    image: ${POSTGRES_IMAGE:-postgres:16@sha256:3950ad7c3148ca2175ef1b6c36c9efbf78957ae8fbe8b3a5d7c35af50500382f}
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -21,7 +21,7 @@ services:
     networks: [data]
 
   qdrant:
-    image: ${QDRANT_IMAGE:-qdrant/qdrant@sha256:057ee3a8da769fe7310dd3537b4dc7583bf87a95ce8ac43c0af5a46bc580d1fc}
+    image: ${QDRANT_IMAGE:-qdrant/qdrant@sha256:d277592721d2e3b73f9b797b53cf05e6a5bb2134f6d13fdbda4ca51782afbcac}
     restart: unless-stopped
     environment:
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?Run ./setup.sh first}
@@ -30,12 +30,12 @@ services:
     networks: [data]
 
   tika:
-    image: ${TIKA_IMAGE:-apache/tika@sha256:80072bb73dd320a9de9709beb0b16d14dd6d2680376f8d31e498f55b633ba593}
+    image: ${TIKA_IMAGE:-apache/tika@sha256:0f0fbd7f053a2a9941b816ce6d6974493f5527f40c4d3491f9c2cecec30e612c}
     restart: unless-stopped
     networks: [data]
 
   litellm:
-    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.100.0@sha256:c8756e7b9a61fe45df2ccb5b781d388c3b2f3a21ef9e4956630caef20f9f03aa}
+    image: ${LITELLM_IMAGE:-ghcr.io/berriai/litellm:v1.110.2@sha256:ef798594ca3db8d81bad2e1439f536f49b71fe095ee9f20416f5e149b4e22035}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -61,7 +61,7 @@ services:
     networks: [data, webui]
 
   open-webui:
-    image: ${OPEN_WEBUI_IMAGE:-ghcr.io/open-webui/open-webui@sha256:c792953395b43d4f49085fa4026850c5e923578345ebeaf56eabd980bcfc273a}
+    image: ${OPEN_WEBUI_IMAGE:-ghcr.io/open-webui/open-webui:v0.13.4@sha256:d5168bfbc28609eff5bea1b438dd864cf64d185cf6582c02244865e18385b901}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -107,7 +107,7 @@ services:
 
   npm:
     profiles: [proxy]
-    image: ${NPM_IMAGE:-jc21/nginx-proxy-manager:2.15.1}
+    image: ${NPM_IMAGE:-jc21/nginx-proxy-manager:2.17.1@sha256:04a9d0835560b9719ab577275f84fe1f713298a1c1e2bdefa034b87f10e062e1}
     restart: unless-stopped
     environment:
       TZ: ${TZ:-UTC}
@@ -123,7 +123,7 @@ services:
 
   ollama:
     profiles: [ollama]
-    image: ${OLLAMA_IMAGE:-ollama/ollama@sha256:bfc9c6d53cc6989aa5131a6fde6b162b2802d4d337657f3253b5f69579bddeee}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: unless-stopped
     volumes:
       - ollama-data:/root/.ollama
@@ -131,7 +131,7 @@ services:
 
   open-terminal:
     profiles: [terminal]
-    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal@sha256:8f6d2045aa69e348e39d89bf59e6b267773532335333eed14ff16bbc7c964b73}
+    image: ${OPEN_TERMINAL_IMAGE:-ghcr.io/open-webui/open-terminal@sha256:bc48e12e5f6d24714177281cf682a3959998c5a426f7b6df79a58e044470e6eb}
     restart: unless-stopped
     environment:
       OPEN_TERMINAL_API_KEY: ${OPEN_TERMINAL_API_KEY:?Run ./setup.sh first}
